@@ -230,7 +230,7 @@ inline oop PSPromotionManager::copy_to_survivor_space(oop o) {
       // okay to use the non mt safe oop methods.
       if (!new_obj_is_tenured) {
         //[patch point]
-	new_obj->incr_age();
+	//new_obj->incr_age();
         assert(young_space()->contains(new_obj), "Attempt to push non-promoted obj");
       }
 

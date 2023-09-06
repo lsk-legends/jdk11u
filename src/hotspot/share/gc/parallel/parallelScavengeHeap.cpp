@@ -456,7 +456,7 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   //   Mark sweep and allocate in young generation.
   if (result == NULL && !invoked_full_gc) {
     //[patch point]
-    //do_full_collection(false);
+    do_full_collection(false);
     PSScavenge::invoke();
     result = young_gen()->allocate(size);
   }
@@ -477,7 +477,7 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   if (result == NULL) {
     //[patch point]
     PSScavenge::invoke();
-    //do_full_collection(true);
+    do_full_collection(true);
     result = young_gen()->allocate(size);
   }
 
