@@ -1004,6 +1004,7 @@ void PSParallelCompact::post_compact()
     clear_data_covering_space(SpaceId(id));
     // Update top().  Must be done after clearing the bitmap and summary data.
     _space_info[id].publish_new_top();
+    log_debug(gc)("post_compact set _space_info %d with new top 0x%lx",id,(long)_space_info[id].new_top());
   }
 
   MutableSpace* const eden_space = _space_info[eden_space_id].space();
@@ -1012,6 +1013,8 @@ void PSParallelCompact::post_compact()
 
   ParallelScavengeHeap* heap = ParallelScavengeHeap::heap();
   bool eden_empty = eden_space->is_empty();
+  //[patch point]
+  //if(false){
   if (!eden_empty) {
     eden_empty = absorb_live_data_from_eden(heap->size_policy(),
                                             heap->young_gen(), heap->old_gen());
@@ -1709,7 +1712,9 @@ void PSParallelCompact::invoke(bool maximum_heap_compaction) {
 
   const bool clear_all_soft_refs =
     heap->soft_ref_policy()->should_clear_all_soft_refs();
-
+  //[patch point]
+  //log_info(gc, promotion)("return before ps MC");
+  //return;
   PSParallelCompact::invoke_no_policy(clear_all_soft_refs ||
                                       maximum_heap_compaction);
 }

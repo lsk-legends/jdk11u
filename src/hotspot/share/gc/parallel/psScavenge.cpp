@@ -196,7 +196,9 @@ bool PSScavenge::invoke() {
   IsGCActiveMark mark;
 
   const bool scavenge_done = PSScavenge::invoke_no_policy();
-  const bool need_full_gc = !scavenge_done ||
+  //[patch point]
+  const bool need_full_gc = false;
+  //const bool need_full_gc = !scavenge_done ||
     policy->should_full_GC(heap->old_gen()->free_in_bytes());
   bool full_gc_done = false;
 
@@ -205,8 +207,9 @@ bool PSScavenge::invoke() {
     const int ffs_val = need_full_gc ? full_follows_scavenge : not_skipped;
     counters->update_full_follows_scavenge(ffs_val);
   }
-
   if (need_full_gc) {
+    //[patch point]
+    log_info(gc, promotion)("invoke not do old gc");
     GCCauseSetter gccs(heap, GCCause::_adaptive_size_policy);
     SoftRefPolicy* srp = heap->soft_ref_policy();
     const bool clear_all_softrefs = srp->should_clear_all_soft_refs();

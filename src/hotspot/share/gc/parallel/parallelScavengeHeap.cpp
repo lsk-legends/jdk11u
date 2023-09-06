@@ -292,10 +292,11 @@ HeapWord* ParallelScavengeHeap::mem_allocate(
       }
 
       // If certain conditions hold, try allocating from the old gen.
-      result = mem_allocate_old_gen(size);
-      if (result != NULL) {
-        return result;
-      }
+      //[patch point]
+      //result = mem_allocate_old_gen(size);
+      //if (result != NULL) {
+      //  return result;
+      //}
 
       if (gclocker_stalled_count > GCLockerRetryAllocationCount) {
         return NULL;
@@ -454,7 +455,9 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   // Second level allocation failure.
   //   Mark sweep and allocate in young generation.
   if (result == NULL && !invoked_full_gc) {
-    do_full_collection(false);
+    //[patch point]
+    //do_full_collection(false);
+    PSScavenge::invoke();
     result = young_gen()->allocate(size);
   }
 
@@ -464,20 +467,26 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   //   After mark sweep and young generation allocation failure,
   //   allocate in old generation.
   if (result == NULL) {
-    result = old_gen()->allocate(size);
+    //[patch point]
+    result = young_gen()->allocate(size);
+    //result = old_gen()->allocate(size);
   }
 
   // Fourth level allocation failure. We're running out of memory.
   //   More complete mark sweep and allocate in young generation.
   if (result == NULL) {
-    do_full_collection(true);
+    //[patch point]
+    PSScavenge::invoke();
+    //do_full_collection(true);
     result = young_gen()->allocate(size);
   }
 
   // Fifth level allocation failure.
   //   After more complete mark sweep, allocate in old generation.
   if (result == NULL) {
-    result = old_gen()->allocate(size);
+    //[patch point]
+    result = young_gen()->allocate(size);
+    //result = old_gen()->allocate(size);
   }
 
   return result;

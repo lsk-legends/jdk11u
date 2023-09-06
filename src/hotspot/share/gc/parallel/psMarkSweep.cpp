@@ -105,7 +105,9 @@ void PSMarkSweep::invoke(bool maximum_heap_compaction) {
 
   const bool clear_all_soft_refs =
     heap->soft_ref_policy()->should_clear_all_soft_refs();
-
+  //[patch point]
+  //log_info(gc, promotion)("return before ps MS");
+  //return;
   uint count = maximum_heap_compaction ? 1 : MarkSweepAlwaysCompactCount;
   UIntFlagSetting flag_setting(MarkSweepAlwaysCompactCount, count);
   PSMarkSweep::invoke_no_policy(clear_all_soft_refs || maximum_heap_compaction);
