@@ -162,8 +162,9 @@ inline oop PSPromotionManager::copy_to_survivor_space(oop o) {
     if (new_obj == NULL) {
       //[patch point]
       log_info(gc, promotion)("object %lu promotion to 'to space' fail!",new_obj_size);
+      std::exit(137);
       //_old_gen_is_full = true;
-      return oop_promotion_failed(o, test_mark);
+      //return oop_promotion_failed(o, test_mark);
 #ifndef PRODUCT
       if (ParallelScavengeHeap::heap()->promotion_should_fail()) {
         return oop_promotion_failed(o, test_mark);
