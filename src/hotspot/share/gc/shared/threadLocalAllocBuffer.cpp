@@ -83,7 +83,7 @@ void ThreadLocalAllocBuffer::accumulate_statistics() {
   if (_number_of_refills > 0) {
     // Update allocation history if a reasonable amount of eden was allocated.
     bool update_allocation_history = used > 0.5 * capacity;
-    log_trace(gc, tlab)("TLAB ACCUMULATE USED %lu, 0.5*CAPACITY %lu",used, capacity/2);
+    log_trace(gc, tlab)("TLAB ACCUMULATE USED %lu, 0.5*CAPACITY %lu since alloc%lu",used, capacity/2,allocated_since_last_gc);
 
     if (update_allocation_history) {
       // Average the fraction of eden allocated in a tlab by this
