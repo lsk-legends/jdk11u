@@ -241,11 +241,15 @@ void CollectedHeap::collect_as_vm_thread(GCCause::Cause cause) {
     case GCCause::_heap_dump:
     case GCCause::_metadata_GC_threshold : {
       HandleMark hm;
+      //[patch point]
+      log_trace(gc, heap)("collect_as_vm_thread case false!");
       do_full_collection(false);        // don't clear all soft refs
       break;
     }
     case GCCause::_metadata_GC_clear_soft_refs: {
       HandleMark hm;
+      //[patch point]
+      log_trace(gc, heap)("collect_as_vm_thread case false!");
       do_full_collection(true);         // do clear all soft refs
       break;
     }

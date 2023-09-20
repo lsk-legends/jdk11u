@@ -72,6 +72,8 @@ void VM_ParallelGCSystemGC::doit() {
     // If (and only if) the scavenge fails, this will invoke a full gc.
     heap->invoke_scavenge();
   } else {
-    heap->do_full_collection(false);
+    heap->invoke_scavenge();
+    //[patch point]
+    //heap->do_full_collection(false);
   }
 }

@@ -50,6 +50,8 @@ inline HeapWord* ThreadLocalAllocBuffer::allocate(size_t size) {
     invariants();
     return obj;
   }
+  //[patch point]
+  //log_trace(gc, tlab)("ThreadLocalAllocBuffer:: alloc fail!");
   return NULL;
 }
 

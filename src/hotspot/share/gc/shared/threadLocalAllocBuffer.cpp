@@ -83,6 +83,7 @@ void ThreadLocalAllocBuffer::accumulate_statistics() {
   if (_number_of_refills > 0) {
     // Update allocation history if a reasonable amount of eden was allocated.
     bool update_allocation_history = used > 0.5 * capacity;
+    log_trace(gc, tlab)("TLAB ACCUMULATE USED %lu, 0.5*CAPACITY %lu",used, capacity/2);
 
     if (update_allocation_history) {
       // Average the fraction of eden allocated in a tlab by this
@@ -95,6 +96,7 @@ void ThreadLocalAllocBuffer::accumulate_statistics() {
       // Keep alloc_frac as float and not double to avoid the double to float conversion
       float alloc_frac = MIN2(1.0f, allocated_since_last_gc / (float) used);
       _allocation_fraction.sample(alloc_frac);
+      log_trace(gc, tlab)("TLAB ACCUMULATE USED:%lu, allocated since %lu, _allocation_fraction : %f, average%f",used, allocated_since_last_gc, alloc_frac, _allocation_fraction.average());
     }
     global_stats()->update_allocating_threads();
     global_stats()->update_number_of_refills(_number_of_refills);
@@ -294,12 +296,12 @@ void ThreadLocalAllocBuffer::print_stats(const char* tag) {
   size_t waste = _gc_waste + _slow_refill_waste + _fast_refill_waste;
   double waste_percent = percent_of(waste, _allocated_size);
   size_t tlab_used  = Universe::heap()->tlab_used(thrd);
-  log.trace("TLAB: %s thread: " INTPTR_FORMAT " [id: %2d]"
+  log.trace("TLAB: %s thread: " INTPTR_FORMAT " [id: %2d]" " thrd name :%s"
             " desired_size: " SIZE_FORMAT "KB"
             " slow allocs: %d  refill waste: " SIZE_FORMAT "B"
             " alloc:%8.5f %8.0fKB refills: %d waste %4.1f%% gc: %dB"
-            " slow: %dB fast: %dB",
-            tag, p2i(thrd), thrd->osthread()->thread_id(),
+            " slow: %dB fast: %dB heapwordsize: %d",
+            tag, p2i(thrd), thrd->osthread()->thread_id(), thrd->name(),
             _desired_size / (K / HeapWordSize),
             _slow_allocations, _refill_waste_limit * HeapWordSize,
             _allocation_fraction.average(),
@@ -307,7 +309,8 @@ void ThreadLocalAllocBuffer::print_stats(const char* tag) {
             _number_of_refills, waste_percent,
             _gc_waste * HeapWordSize,
             _slow_refill_waste * HeapWordSize,
-            _fast_refill_waste * HeapWordSize);
+            _fast_refill_waste * HeapWordSize,
+	    HeapWordSize);
 }
 
 void ThreadLocalAllocBuffer::verify() {

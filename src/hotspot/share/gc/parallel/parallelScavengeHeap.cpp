@@ -422,6 +422,9 @@ HeapWord* ParallelScavengeHeap::mem_allocate_old_gen(size_t size) {
 }
 
 void ParallelScavengeHeap::do_full_collection(bool clear_all_soft_refs) {
+  log_trace(gc)("debug : in do_full_collection!");
+  return;
+  //std::exit(137);
   if (UseParallelOldGC) {
     // The do_full_collection() parameter clear_all_soft_refs
     // is interpreted here as maximum_compaction which will
@@ -456,7 +459,7 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   //   Mark sweep and allocate in young generation.
   if (result == NULL && !invoked_full_gc) {
     //[patch point]
-    do_full_collection(false);
+    //do_full_collection(false);
     PSScavenge::invoke();
     result = young_gen()->allocate(size);
   }
@@ -477,7 +480,7 @@ HeapWord* ParallelScavengeHeap::failed_mem_allocate(size_t size) {
   if (result == NULL) {
     //[patch point]
     PSScavenge::invoke();
-    do_full_collection(true);
+    //do_full_collection(true);
     result = young_gen()->allocate(size);
   }
 
