@@ -264,11 +264,14 @@ HeapWord* GenCollectedHeap::expand_heap_and_allocate(size_t size, bool   is_tlab
   if (_old_gen->should_allocate(size, is_tlab)) {
     result = _old_gen->expand_and_allocate(size, is_tlab);
   }
+  //[patch point] disable young gen allocate
+  /*
   if (result == NULL) {
     if (_young_gen->should_allocate(size, is_tlab)) {
       result = _young_gen->expand_and_allocate(size, is_tlab);
     }
   }
+  */
   assert(result == NULL || is_in_reserved(result), "result not in heap");
   return result;
 }
@@ -288,6 +291,8 @@ HeapWord* GenCollectedHeap::mem_allocate_work(size_t size,
     HandleMark hm; // Discard any handles allocated in each iteration.
 
     // First allocation attempt is lock-free.
+    //[patch point]
+    /*disable lock-free alloc in young gen
     Generation *young = _young_gen;
     assert(young->supports_inline_contig_alloc(),
       "Otherwise, must do alloc within heap lock");
@@ -298,10 +303,11 @@ HeapWord* GenCollectedHeap::mem_allocate_work(size_t size,
         return result;
       }
     }
+    */
     uint gc_count_before;  // Read inside the Heap_lock locked region.
     {
       MutexLocker ml(Heap_lock);
-      log_trace(gc, alloc)("GenCollectedHeap::mem_allocate_work: attempting locked slow path allocation");
+      //log_trace(gc, alloc)("GenCollectedHeap::mem_allocate_work: attempting locked slow path allocation");
       // Note that only large objects get a shot at being
       // allocated in later generations.
       bool first_only = !should_try_older_generation_allocation(size);
@@ -428,13 +434,15 @@ HeapWord* GenCollectedHeap::attempt_allocation(size_t size,
                                                bool is_tlab,
                                                bool first_only) {
   HeapWord* res = NULL;
-
+  //[patch point] disable alloc in young gen
+  /*
   if (_young_gen->should_allocate(size, is_tlab)) {
     res = _young_gen->allocate(size, is_tlab);
     if (res != NULL || first_only) {
       return res;
     }
   }
+  */
 
   if (_old_gen->should_allocate(size, is_tlab)) {
     res = _old_gen->allocate(size, is_tlab);
@@ -595,6 +603,8 @@ void GenCollectedHeap::do_collection(bool           full,
     bool prepared_for_verification = false;
     bool collected_old = false;
 
+    //[patch point] disable do young collection
+    do_young_collection = false;
     if (do_young_collection) {
       if (run_verification && VerifyGCLevel <= 0 && VerifyBeforeGC) {
         prepare_for_verify();
@@ -696,6 +706,8 @@ HeapWord* GenCollectedHeap::satisfy_failed_allocation(size_t size, bool is_tlab)
   HeapWord* result = NULL;
 
   assert(size != 0, "Precondition violated");
+  //[patch point] do old gen gc
+  /*
   if (GCLocker::is_active_and_needs_gc()) {
     // GC locker is active; instead of a collection we will attempt
     // to expand the heap, if there's room for expansion.
@@ -703,7 +715,7 @@ HeapWord* GenCollectedHeap::satisfy_failed_allocation(size_t size, bool is_tlab)
       result = expand_heap_and_allocate(size, is_tlab);
     }
     return result;   // Could be null if we are out of space.
-  } else if (!incremental_collection_will_fail(false /* don't consult_young */)) {
+  } else if (!incremental_collection_will_fail(false)) {
     // Do an incremental collection.
     do_collection(false,                     // full
                   false,                     // clear_all_soft_refs
@@ -722,6 +734,12 @@ HeapWord* GenCollectedHeap::satisfy_failed_allocation(size_t size, bool is_tlab)
                   is_tlab,                   // is_tlab
                   GenCollectedHeap::OldGen); // max_generation
   }
+  */
+  do_collection(false,                     // full
+		  false,                     // clear_all_soft_refs
+		  size,                      // size
+		  is_tlab,                   // is_tlab
+		  GenCollectedHeap::OldGen); // max_generation
 
   result = attempt_allocation(size, is_tlab, false /*first_only*/);
 
@@ -995,14 +1013,16 @@ void GenCollectedHeap::do_full_collection(bool clear_all_soft_refs) {
 
 void GenCollectedHeap::do_full_collection(bool clear_all_soft_refs,
                                           GenerationType last_generation) {
+  //[patch point] disable young gc, do old gc
   do_collection(true,                   // full
                 clear_all_soft_refs,    // clear_all_soft_refs
                 0,                      // size
                 false,                  // is_tlab
-                last_generation);       // last_generation
+                OldGen);       // last_generation
   // Hack XXX FIX ME !!!
   // A scavenge may not have been attempted, or may have
   // been attempted and failed, because the old gen was too full
+  /*
   if (gc_cause() == GCCause::_gc_locker && incremental_collection_failed()) {
     log_debug(gc, jni)("GC locker: Trying a full collection because scavenge failed");
     // This time allow the old gen to be collected as well
@@ -1012,6 +1032,7 @@ void GenCollectedHeap::do_full_collection(bool clear_all_soft_refs,
                   false,               // is_tlab
                   OldGen);             // last_generation
   }
+  */
 }
 
 bool GenCollectedHeap::is_in_young(oop p) {

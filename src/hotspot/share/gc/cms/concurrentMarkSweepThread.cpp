@@ -78,6 +78,8 @@ void ConcurrentMarkSweepThread::run_service() {
   while (!should_terminate()) {
     sleepBeforeNextCycle();
     if (should_terminate()) break;
+    //[patch point]
+    //continue;
     GCIdMark gc_id_mark;
     GCCause::Cause cause = _collector->_full_gc_requested ?
       _collector->_full_gc_cause : GCCause::_cms_concurrent_mark;

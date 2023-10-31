@@ -360,7 +360,9 @@ HeapWord* MemAllocator::allocate_inside_tlab_slow(Allocation& allocation) const 
 }
 
 HeapWord* MemAllocator::mem_allocate(Allocation& allocation) const {
-  if (UseTLAB) {
+  //[patch point]
+  //if (UseTLAB) {
+  if(false){
     HeapWord* result = allocate_inside_tlab(allocation);
     if (result != NULL) {
       return result;
